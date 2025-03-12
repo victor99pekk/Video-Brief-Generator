@@ -1,4 +1,6 @@
 src/GoogleKey.json
+config/GoogleKey.json
+
 .env
 __pycache__/*
 src/__pycache__/*
