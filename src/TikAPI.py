@@ -1,13 +1,28 @@
-# TikAPI.py
-
-import requests
 from difflib import SequenceMatcher
 from tikapi import TikAPI, ValidationException, ResponseException
 
-
-
 class TikAPIWrapper:
+    """
+    A wrapper class for the TikTok API that simplifies searching for music,
+    finding matching songs, and fetching video metadata.
+    
+    This class encapsulates the authentication process and provides high-level
+    methods for common TikTok API operations related to music discovery and video
+    retrieval.
+    
+    Attributes:
+        api_key (str): The TikTok API authentication key
+        api (TikAPI): The initialized TikAPI client instance
+    """
     def __init__(self, key:str):
+        """
+        Initialize the TikTok API wrapper with the provided API key.
+        
+        Args:
+            key (str): The TikTok API authentication key obtained from tikapi.io
+                       Used to authenticate all requests to the TikTok API.
+                       
+        """
         self.api_key = key
         self.api = TikAPI(self.api_key)
 
