@@ -12,11 +12,47 @@ from google.cloud.videointelligence_v1.types import (
     LabelDetectionConfig,
     LabelDetectionMode
 )
+
 class GoogleVideoAnalyzer:
+    """
+    A class that leverages Google Cloud's Video Intelligence API to analyze video content.
+    
+    This class provides methods to extract detailed metadata from videos, including scene 
+    detection, object tracking, label detection, text recognition, and explicit content 
+    analysis. It supports batch processing with concurrent execution for improved performance.
+    
+    Attributes:
+        client (videointelligence.VideoIntelligenceServiceClient): The Google Video Intelligence API client
+    """
     def __init__(self):
+        """
+        Initialize the Google Video Analyzer with a Video Intelligence client.
+        
+        The initialization automatically uses the Google credentials from the environment
+        variables or from the GoogleKey.json file in the same directory.
+        
+        Raises:
+            google.auth.exceptions.DefaultCredentialsError: If no valid credentials are found
+        """
         self.client = videointelligence.VideoIntelligenceServiceClient()
 
     def process_single_video(self, uri, timeout, features, video_context):
+        """
+        Process a single video and extract metadata using Google's Video Intelligence API.
+        
+        Args:
+            uri (str): The Cloud Storage URI of the video to be analyzed
+            timeout (int): Maximum time to wait for the analysis to complete, in seconds
+            features (list): List of video intelligence features to analyze
+            video_context (VideoContext): Configuration for the video analysis
+            
+        Returns:
+            dict: A dictionary containing the video URI and its analysis results
+            
+        Raises:
+            google.api_core.exceptions.GoogleAPIError: If the API request fails
+            concurrent.futures.TimeoutError: If the analysis times out
+        """
         print(f"Processing video: {uri}")
         request = AnnotateVideoRequest(
             input_uri=uri,
@@ -30,6 +66,21 @@ class GoogleVideoAnalyzer:
         return {"video_uri": uri, "analysis": video_info}
 
     def analyze_videos_in_batch(self, video_uris, timeout=600):
+        """
+        Analyze multiple videos concurrently for improved performance.
+        
+        Args:
+            video_uris (list): List of Cloud Storage URIs for videos to analyze
+            timeout (int, optional): Maximum time to wait for each video analysis, in seconds.
+                                     Defaults to 600 seconds (10 minutes).
+            
+        Returns:
+            list: A list of dictionaries containing analysis results for each video
+            
+        Notes:
+            This method processes videos in parallel threads to improve performance.
+            The number of concurrent workers is equal to the number of videos being processed.
+        """
         if not video_uris:
             return []
 
@@ -67,6 +118,26 @@ class GoogleVideoAnalyzer:
         return batch_results
 
     def _parse_annotation_result(self, annotation_result):
+        """
+        Parse and organize the raw annotation results from the Video Intelligence API.
+        
+        Args:
+            annotation_result (videointelligence.AnnotationResult): The raw annotation result
+                                                                   from the API
+            
+        Returns:
+            dict: A structured dictionary containing organized video metadata including:
+                  - Shot boundaries
+                  - Labels (segment, shot, frame, and category)
+                  - Tracked objects with bounding boxes
+                  - Detected text
+                  - Explicit content markers
+                  - Environment type inference (indoor/outdoor)
+        
+        Note:
+            This is an internal method used to transform the complex API response
+            into a more accessible data structure.
+        """
         data = {}
 
         # 1) Shot Annotations

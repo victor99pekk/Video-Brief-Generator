@@ -2,6 +2,7 @@
 
 **ViralMusicExplorer** is an innovative tool that helps users discover similar songs based on their preferences developed for the company parasition. By simply inputting a song title, the program not only suggests similar tracks but also analyzes their potential virality on a social media platform of choice, and outputs a brief of video idea for the inputted song in text form.
 
+<br>
 ## How It Works
 
 1. **Input a Song**: The user enters a song they enjoy or want to explore further.

@@ -168,6 +168,3 @@ class ViralMusicFinder:
         else:
             print("Only 1 or0 videos processed; skipping trend comparison.")
             return None, None
-if __name__ == "__main__":
-    music_find = ViralMusicFinder(API_KEY, API_SECRET, open_ai_key)
-    music_find.find_tiktoks(song="mamma mia", artist="abba")

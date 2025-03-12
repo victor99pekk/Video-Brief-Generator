@@ -1,7 +1,30 @@
 import pylast
 
 class LastfmAPI:
+    """
+    A wrapper class for the Last.fm API that provides methods to access music data, 
+    including similar tracks, artist information, and trending music.
+    
+    This class handles authentication with the Last.fm API and provides convenient
+    methods for retrieving music recommendations and metadata.
+    
+    Attributes:
+        API_KEY (str): The Last.fm API key used for authentication
+        API_SECRET (str): The Last.fm API secret used for authentication
+        network (pylast.LastFMNetwork): The authenticated Last.fm network instance
+    """
     def __init__(self, API_KEY, API_SECRET):
+        """
+        Initialize the Last.fm API wrapper with the provided credentials.
+        
+        Args:
+            API_KEY (str): Your Last.fm API key obtained from Last.fm developer dashboard
+            API_SECRET (str): Your Last.fm API secret obtained from Last.fm developer dashboard
+            
+        Raises:
+            pylast.WSError: If authentication fails due to invalid credentials
+            pylast.NetworkError: If there's a network issue connecting to Last.fm
+        """
         self.API_KEY = API_KEY
         self.API_SECRET = API_SECRET
         self.network = pylast.LastFMNetwork(api_key=API_KEY, api_secret=API_SECRET)
@@ -40,26 +63,3 @@ class LastfmAPI:
         tags = track.get_top_tags(limit=limit)
         return [tag.item.name for tag in tags]
 
-# Example Usage
-if __name__ == "__main__":
-    lastfm = LastfmAPI(API_KEY, API_SECRET)
-
-    # Get similar tracks
-    similar_tracks = lastfm.get_similar_tracks("Billie Jean", "Michael Jackson")
-    print("Similar Tracks:", similar_tracks)
-
-    # Get top tracks of an artist
-    top_tracks = lastfm.get_top_tracks("The Weeknd")
-    print("Top Tracks:", top_tracks)
-
-    # Get album info
-    album_info = lastfm.get_album_info("The Weeknd", "After Hours")
-    print("Album Info:", album_info)
-
-    # Get global trending tracks
-    trending_tracks = lastfm.get_global_trending_tracks()
-    print("Trending Tracks:", trending_tracks)
-
-    # Get track tags (genres)
-    track_tags = lastfm.get_track_tags("Blinding Lights", "The Weeknd")
-    print("Track Tags:", track_tags)
