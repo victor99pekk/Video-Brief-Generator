@@ -1,10 +1,5 @@
 import os
 import concurrent.futures
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
-    os.path.dirname(__file__), "GoogleKey.json"
-)
-
 from google.cloud import videointelligence
 from google.cloud.videointelligence_v1.types import (
     AnnotateVideoRequest,
@@ -12,6 +7,9 @@ from google.cloud.videointelligence_v1.types import (
     LabelDetectionConfig,
     LabelDetectionMode
 )
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
+#     os.path.dirname(__file__), "GoogleKey.json"
+# )
 
 class GoogleVideoAnalyzer:
     """
