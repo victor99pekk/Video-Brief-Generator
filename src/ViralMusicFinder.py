@@ -1,9 +1,9 @@
-from GoogleVideoAnalyzer import GoogleVideoAnalyzer
-from LastfmAPI import LastfmAPI
-from TikAPI import TikAPIWrapper
-from GoogleCloud import GCSVideoUploader
-from CompareFeatures import CompareFeatures
-from OpenAITrend import OpenAITrendSummarizer
+from .GoogleVideoAnalyzer import GoogleVideoAnalyzer
+from .LastfmAPI import LastfmAPI
+from .TikAPI import TikAPIWrapper
+from .GoogleCloud import GCSVideoUploader
+from .CompareFeatures import CompareFeatures
+from .OpenAITrend import OpenAITrendSummarizer
 import concurrent.futures
 
 
