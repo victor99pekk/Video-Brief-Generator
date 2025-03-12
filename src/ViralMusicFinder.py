@@ -29,8 +29,8 @@ class ViralMusicFinder:
         # 1. Get similar tracks from Last.fm
         similar_tracks = self.music_api.get_similar_tracks(song=song, artist=artist, limit=3)
         if not similar_tracks:
-            print("No similar tracks found.")
-            return
+            print("No similar tracks found...")
+            return "No similar tracks found.", f"no similar tracks found for {song} by {artist}"
 
         # Process each similar track concurrently
         print(f"Found {len(similar_tracks)} similar tracks.")

@@ -32,14 +32,14 @@ class TestBriefAPI(unittest.TestCase):
     def test_get_brief_endpoint_success(self, mock_generate_brief):
         """Test successful brief generation with mocked function"""
         # Set up mock return value
-        mock_generate_brief.return_value = "This is a test brief for Blinding Lights"
+        mock_generate_brief.return_value = "This is a test brief for Hello"
         
         # Send request to the endpoint
         response = self.app.post(
             '/get-brief',
             data=json.dumps({
-                'song': 'Blinding Lights', 
-                'artist': 'The Weeknd'
+                'song': 'hello', 
+                'artist': 'adele'
             }),
             content_type='application/json'
         )
@@ -50,7 +50,7 @@ class TestBriefAPI(unittest.TestCase):
         # Assertions
         self.assertEqual(response.status_code, 200)
         self.assertIn('brief', data)
-        self.assertEqual(data['brief'], "This is a test brief for Blinding Lights")
+        self.assertEqual(data['brief'], "This is a test brief for Hello")
         
     def test_get_brief_missing_data(self):
         """Test brief generation with missing data"""
@@ -68,7 +68,7 @@ class TestBriefAPI(unittest.TestCase):
         # Test with missing fields but not empty JSON
         response = self.app.post(
             '/get-brief',
-            data=json.dumps({'song': 'Blinding Lights'}),  # Only include song
+            data=json.dumps({'song': 'Hello'}),  # Only include song
             content_type='application/json'
         )
         
@@ -121,7 +121,7 @@ class TestLiveAPI(unittest.TestCase):
         if not self.__class__.server_running:
             self.skipTest("API server not running")
             
-        data = {'song': 'Blinding Lights', 'artist': 'The Weeknd'}
+        data = {'song': 'Hello', 'artist': 'Adele'}
         response = requests.post(
             'http://localhost:8080/get-brief',
             json=data
