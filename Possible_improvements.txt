@@ -1,4 +1,14 @@
 
-POSSIBLE IMPROVEMENTS:
+Todo:
 
-- instead of download the video (content) buffer it. google video analyzer
+- instead of download the video (in google video analyzer) buffer it
+
+- We have to find a better way of finding similar songs. Lastfm isnt good enough
+
+- Tikapi isnt a good api for tiktok. It doesnt work sometimes
+
+- make it possible to curl the web.py class. make it possible for the other guys to create a javascript application around
+
+- if Llama is open source, we could potentially switch from the openAI api to Llama to decrease the number of dependencies for this project
+
+- improve the LLM response with prompt engineering
