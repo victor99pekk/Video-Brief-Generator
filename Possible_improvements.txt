@@ -1,0 +1,4 @@
+
+POSSIBLE IMPROVEMENTS:
+
+- instead of download the video (content) buffer it. google video analyzer

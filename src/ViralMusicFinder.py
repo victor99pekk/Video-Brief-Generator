@@ -65,8 +65,10 @@ class ViralMusicFinder:
         if aggregated_trends:
             overall_summary = self.Summarizer.summarize_trends(aggregated_trends)
             print(overall_summary)
+            return overall_summary
         else:
             print("No trends available")
+            return "No trends available."
 
     def process_similar_track(self, song: str, artist: str, video_limit=4):
         """
