@@ -10,7 +10,7 @@ The apple music could be a good choice. i think you might have to pay for it tho
 could be good to check that it actually works
 
 TIKAPI: 
-- Tikapi isnt a good api for tiktok. It doesnt work sometimes
+- Tikapi isnt a good api for tiktok. It doesnt work sometimes. Maybe have a look at the reserach tiktokapi?
 
 WEB.PY: 
 - make it possible to curl the web.py class. make it possible for the other guys to create 
@@ -19,4 +19,4 @@ a javascript application around
 LLM: 
 - if Llama is open source, we could potentially switch from the openAI api to Llama to 
 decrease the number of dependencies for this project
-- improve the LLM response with prompt engineering.
+- improve the LLM response further with prompt engineering.

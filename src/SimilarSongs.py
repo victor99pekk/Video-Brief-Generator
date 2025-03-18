@@ -1,179 +1,265 @@
-import base64
 import requests
+import base64
+import json
+import os
+import time
 
 class SimilarSongs:
+    """
+    A class for finding similar songs using the TIDAL API with client credentials flow.
+    """
 
-    def __init__(self, client_id:str, secret:str):
+    def __init__(self, client_id, client_secret):
         """
-        Initialize the SimilarSongs class with the provided API key and secret.
+        Initialize the SimilarSongs class with TIDAL API credentials.
         
         Args:
-            client_id (str): Spotify API client ID
-            secret (str): Spotify API client secret
-            
-        Raises:
-            ConnectionError: If unable to obtain access token
-            ValueError: If credentials are invalid
+            client_id (str): TIDAL API client ID
+            client_secret (str): TIDAL API client secret
         """
-        if not client_id or not secret:
-            raise ValueError("Client ID and secret must be provided")
-
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.token = None
+        self.token_type = "Bearer"
+        self.token_expiry = 0
+        self.token_server = "https://auth.tidal.com/v1/oauth2/token"
+        self.api_base_url = "https://api.tidal.com/v1"
+        
+        # Authenticate immediately upon initialization
+        self.authenticate()
+    
+    def authenticate(self):
+        """
+        Authenticate using the client credentials flow.
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            auth_str = f"{client_id}:{secret}"  # Fixed: Using secret param instead of self.client_secret
-            b64_auth_str = base64.b64encode(auth_str.encode()).decode()
-        except Exception as e:
-            raise ValueError(f"Error encoding credentials: {str(e)}")
-
-        headers = {
-            'Authorization': f'Basic {b64_auth_str}'
-        }
-
-        data = {
-            'grant_type': 'client_credentials'
-        }
-
-        try:
-            response = requests.post('https://accounts.spotify.com/api/token', headers=headers, data=data)
+            print("Authenticating with TIDAL API...")
+            
+            # Create base64 encoded credentials as specified in the documentation
+            credentials = f"{self.client_id}:{self.client_secret}"
+            b64_credentials = base64.b64encode(credentials.encode()).decode()
+            
+            oauth_headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": f"Basic {b64_credentials}"
+            }
+            
+            data = {
+                "grant_type": "client_credentials"
+            }
+            
+            response = requests.post(self.token_server, headers=oauth_headers, data=data)
             
             if response.status_code == 200:
-                self.token = response.json()['access_token']
-                print("Access Token:", self.token)
+                token_info = response.json()
+                self.token = token_info.get("access_token")
+                self.token_type = token_info.get("token_type", "Bearer")
+                expires_in = token_info.get("expires_in", 3600)
+                
+                # Set expiry time (current time + expires_in - 300 second buffer)
+                self.token_expiry = time.time() + expires_in - 300
+                
+                print(f"Authentication successful!")
+                print(f"Access token: {self.token[:10]}... (expires in {expires_in} seconds)")
+                return True
             else:
-                error_msg = f"Failed to get access token. Status: {response.status_code}, Response: {response.text}"
-                print(error_msg)
-                raise ConnectionError(error_msg)
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Network error during authentication: {str(e)}"
-            print(error_msg)
-            raise ConnectionError(error_msg)
-
-
-
-    def get_similar_tracks(self, song:str, artist:str, limit=3, market="US"):
+                print(f"Authentication failed: {response.status_code}")
+                print(f"Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"Authentication error: {str(e)}")
+            return False
+    
+    def ensure_valid_token(self):
         """
-        Retrieve similar tracks using Spotify's Recommendations API.
+        Ensure we have a valid token, refreshing if necessary.
         
-        Parameters:
-            song (str): The name of the song
-            artist (str): The name of the artist
-            limit (int): Number of tracks to return (default is 3).
-            market (str): ISO 3166-1 alpha-2 country code (default is "US").
+        Returns:
+            bool: True if a valid token is available, False otherwise
+        """
+        # If token doesn't exist or is about to expire, get a new one
+        if not self.token or time.time() >= self.token_expiry:
+            return self.authenticate()
+        return True
+            
+    def search_track(self, name, artist=None, limit=5):
+        """
+        Search for a track by name and optionally artist.
+        
+        Args:
+            name (str): The track name to search for
+            artist (str, optional): The artist name to filter by
+            limit (int): Maximum number of results to return
             
         Returns:
-            list: A list of tuples containing (track_name, artist_name) for similar tracks
+            dict or None: The first matching track information or None if not found
         """
-        try:
-            print(f"Finding similar tracks for '{song}' by '{artist}'...")
-            
-            # Get the track ID first
-            seed_track_id = self.get_track_id(track_name=song, artist_name=artist)
-            
-            if not seed_track_id:
-                print(f"Could not find track ID for {song} by {artist}")
-                return []
-
-            print(f"Using seed track ID: {seed_track_id}")
-
-            # Create headers with the token
-            headers = {
-                "Authorization": f"Bearer {self.token}"
-            }
-
-            # THIS IS THE CORRECTION - use seed_tracks instead of id parameter
-            endpoint = "https://api.spotify.com/v1/recommendations"
-            params = {
-                "seed_tracks": seed_track_id,  # Changed from "id" to "seed_tracks"
-                "limit": limit,  # Uncommented limit
-                "market": market
-            }
-            
-            print(f"Sending request to {endpoint} with params: {params}")
-            response = requests.get(endpoint, headers=headers, params=params)
-            print(f"Response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                print(f"Error in get_similar_tracks(): {response.status_code}, {response.text}")
-                return []
-            
-            data = response.json()
-            tracks = data.get("tracks", [])
-            print(f"Received {len(tracks)} tracks in response")
-            
-            # Extract track names and artists
-            similar_tracks = []
-            for track in tracks:
-                track_name = track.get("name")
-                artist_name = track.get("artists", [{}])[0].get("name") if track.get("artists") else "Unknown Artist"
-                similar_tracks.append((track_name, artist_name))
-                print(f"Found similar track: '{track_name}' by '{artist_name}'")
-            
-            return similar_tracks
+        # Ensure we have a valid token
+        if not self.ensure_valid_token():
+            print("Failed to obtain valid token")
+            return None
         
+        try:
+            headers = {
+                "Authorization": f"{self.token_type} {self.token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Construct search query
+            query = name
+            if artist:
+                query = f"{name} {artist}"
+                
+            params = {
+                "query": query,
+                "limit": limit,
+                "countryCode": "US",
+                "types": "TRACKS"  # Note: The TIDAL API might use "types" instead of "type"
+            }
+            
+            endpoint = f"{self.api_base_url}/search"
+            print(f"Searching for track: '{query}'")
+            response = requests.get(endpoint, headers=headers, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                tracks = data.get("items", [])
+                
+                if tracks:
+                    # If artist is specified, try to find an exact match
+                    if artist:
+                        for track in tracks:
+                            track_artist = track.get("artist", {}).get("name", "")
+                            if artist.lower() in track_artist.lower():
+                                return track
+                    
+                    # Otherwise return the first result
+                    return tracks[0]
+                    
+                print("No tracks found matching the search criteria.")
+                return None
+                
+            elif response.status_code == 401:
+                print("Access token expired. Attempting to refresh...")
+                if self.authenticate():
+                    # Try again with the new token
+                    return self.search_track(name, artist, limit)
+                else:
+                    print("Failed to refresh token.")
+                    return None
+            else:
+                print(f"Error searching for track: {response.status_code} - {response.text}")
+                return None
+                
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            print(f"Error getting similar tracks: {e}")
+            print(f"Error searching for track: {str(e)}")
+            return None
+            
+    def get_similar_tracks(self, track_id=None, limit=10):
+        """
+        Get tracks similar to the provided track.
+        
+        Args:
+            track_id (str): TIDAL track ID to find similar tracks
+            limit (int): Maximum number of tracks to return
+            
+        Returns:
+            list: List of similar track information as (track_name, artist_name) tuples
+        """
+        # Ensure we have a valid token
+        if not self.ensure_valid_token():
+            print("Failed to obtain valid token")
             return []
         
-    def check_recommendations_endpoint(token):
-        url = "https://api.spotify.com/v1/recommendations"
-        params = {
-            "seed_artists": "4NHQUGzhtTLFvgF5SZesLK",
-            "seed_genres": "classical,country",
-            "seed_tracks": "0c6xIDDpzE81m2q797ordA"
-        }
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
-        response = requests.get(url, headers=headers, params=params)
-        print("Status code:", response.status_code)
-        print("Response:", response.json())
-
-    def get_track_id(self, track_name, artist_name):
-        """
-        Search for a track by name and artist using Spotify's Search for Item endpoint,
-        and return the Spotify track ID of the first result.
-
-        Parameters:
-            access_token (str): A valid OAuth 2.0 access token.
-            track_name (str): The name of the song.
-            artist_name (str): The name of the artist.
+        if not track_id:
+            print("Track ID is required")
+            return []
         
-        Returns:
-            str or None: The Spotify track ID if found, otherwise None.
-        """
-        endpoint = "https://api.spotify.com/v1/search"
-        headers = {
-            "Authorization": f"Bearer {self.token}"
-        }
-        # Construct a query that specifies both the track and artist.
-        query = f"track:{track_name} artist:{artist_name}"
-        params = {
-            "q": query,
-            "type": "track",
-            "limit": 1
-        }
+        similar_tracks = []
         
-        response = requests.get(endpoint, headers=headers, params=params)
-        if response.status_code != 200:
-            print("Error in get_track_id():", response.status_code, response.text)
-            return None
+        try:
+            headers = {
+                "Authorization": f"{self.token_type} {self.token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Get similar tracks based on a track ID
+            endpoint = f"{self.api_base_url}/tracks/{track_id}/similar"
+            params = {"limit": limit, "countryCode": "US"}
+            
+            print(f"Getting similar tracks for track ID: {track_id}")
+            response = requests.get(endpoint, headers=headers, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                tracks = data.get("items", [])
+                
+                for track in tracks:
+                    track_name = track.get("title")
+                    artist_name = track.get("artist", {}).get("name", "Unknown Artist")
+                    similar_tracks.append((track_name, artist_name))
+                    print(f"Found similar track: '{track_name}' by '{artist_name}'")
+                    
+            elif response.status_code == 401:
+                print("Access token expired. Attempting to refresh...")
+                if self.authenticate():
+                    # Try again with the new token
+                    return self.get_similar_tracks(track_id, limit)
+                else:
+                    print("Failed to refresh token.")
+            else:
+                print(f"Error getting similar tracks: {response.status_code} - {response.text}")
+                print(f"Response body: {response.text}")
+                
+        except Exception as e:
+            print(f"Error getting similar tracks: {str(e)}")
+            
+        return similar_tracks
 
-        data = response.json()
-        tracks = data.get("tracks", {}).get("items", [])
-        if tracks:
-            return tracks[0]["id"]
-        else:
-            print("No matching track found.")
-            return None
 
-
+# Test the implementation when file is run directly
+if __name__ == "__main__":
+    # Get credentials from environment or input
+    client_id = "k5n8xFv6twrVblnZ"
+    client_secret = "NO8CX3IFyvHVg98KnsZliw4GcppMykme9Rpk0tiOxSE="
+    # Initialize the API
+    finder = SimilarSongs(client_id, client_secret)
     
-
-SPOTIFY_CLIENT_ID="5140ff5873f94fbc8093c66960b3ec8c"
-SPOTIFY_CLIENT_SECRET="7848e32fe1c04d24bf12821b6da3d4af"
-
-song_finder = SimilarSongs(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
-similar_songs = song_finder.get_similar_tracks(song="Blinding Lights", artist="The Weeknd")
-print(similar_songs)
+    while True:
+        try:
+            # Get search query from user
+            query = "hello"
+            if query.lower() == 'q':
+                break
+                
+            artist = "adele"
+            
+            # Search for the track
+            track = finder.search_track(query, artist=artist if artist else None)
+            if track:
+                track_id = track.get('id')
+                title = track.get('title')
+                artist = track.get('artist', {}).get('name')
+                
+                print(f"\nFound track: {title} by {artist} (ID: {track_id})")
+                
+                # Get similar tracks
+                similar = finder.get_similar_tracks(track_id=track_id)
+                if similar:
+                    print("\nSimilar tracks:")
+                    for i, (name, artist) in enumerate(similar, 1):
+                        print(f"{i}. {name} - {artist}")
+                else:
+                    print("No similar tracks found.")
+            else:
+                print("No tracks found matching your search.")
+                
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            break
+            
+    print("\nThank you for using the TIDAL API demo!")
