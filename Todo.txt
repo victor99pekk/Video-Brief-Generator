@@ -5,14 +5,18 @@ GOOGLEVIDEOANALYZER:
 - instead of download the video (in google video analyzer) buffer it
 
 LASTFM.PY: 
-- We have to find a better way of finding similar songs. Lastfm isnt good enough. The apple music could be a good choice. i think you might have to pay for it though so could be good to check that it actually works
+- We have to find a better way of finding similar songs. Lastfm isnt good enough. 
+The apple music could be a good choice. i think you might have to pay for it though so 
+could be good to check that it actually works
 
 TIKAPI: 
 - Tikapi isnt a good api for tiktok. It doesnt work sometimes
 
 WEB.PY: 
-- make it possible to curl the web.py class. make it possible for the other guys to create a javascript application around
+- make it possible to curl the web.py class. make it possible for the other guys to create 
+a javascript application around
 
 LLM: 
-- if Llama is open source, we could potentially switch from the openAI api to Llama to decrease the number of dependencies for this project
+- if Llama is open source, we could potentially switch from the openAI api to Llama to 
+decrease the number of dependencies for this project
 - improve the LLM response with prompt engineering.
