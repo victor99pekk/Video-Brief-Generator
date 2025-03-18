@@ -1,5 +1,6 @@
-from openai import OpenAI
-from config import open_ai_key
+# imports not implemented
+
+# USE THE .YAML FILE WHEN IMPORTING THE API KEY !!!
 
 def test_new_openai_api(api_key: str):
     """

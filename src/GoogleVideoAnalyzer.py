@@ -22,7 +22,7 @@ class GoogleVideoAnalyzer:
     Attributes:
         client (videointelligence.VideoIntelligenceServiceClient): The Google Video Intelligence API client
     """
-    def __init__(self):
+    def __init__(self, credentials_path:str=None):
         """
         Initialize the Google Video Analyzer with a Video Intelligence client.
         
@@ -32,6 +32,15 @@ class GoogleVideoAnalyzer:
         Raises:
             google.auth.exceptions.DefaultCredentialsError: If no valid credentials are found
         """
+        # Set credentials path if provided
+        # if credentials_path:
+        #     # Store original value to restore later if needed
+        #     original_credentials = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        #     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+        #     self._temp_credentials_set = True
+        #     self._original_credentials = original_credentials
+        # else:
+        #     self._temp_credentials_set = False
         self.client = videointelligence.VideoIntelligenceServiceClient()
 
     def process_single_video(self, uri, timeout, features, video_context):

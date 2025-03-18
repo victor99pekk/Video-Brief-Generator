@@ -7,7 +7,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 # Import from the src directory
-from src import *
+from src import load_config_and_initialize, ViralMusicFinder
 
 app = Flask(__name__)
 
@@ -30,14 +30,19 @@ def generate_brief(song_data) -> str:
             return "Please provide both song and artist"
         
         # Use your ViralMusicFinder to process the song
-        trends, summary = music_finder.find_tiktoks(song=song, artist=artist)
-        
+        # trends, summary = music_finder.find_tiktoks(song=song, artist=artist)
+        summary = music_finder.find_tiktoks(song=song, artist=artist)
+
         # Return the summary or a default message
         return summary if summary else "Could not generate a brief for this song"
     
     except Exception as e:
         print(f"Error generating brief: {e}")
         return f"Error generating brief: {str(e)}"
+    
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 @app.route('/get-brief', methods=['POST'])
 def get_brief():
@@ -63,8 +68,17 @@ def get_brief():
 @app.route('/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint"""
-    print("health")
-    return jsonify({"status": "ok"})
+    import datetime
+    print("Health check requested")
+    
+    health_data = {
+        "status": "ok" if music_finder is not None else "degraded",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "server": "flask",
+        "music_finder_available": music_finder.LLM_key
+    }
+    
+    return jsonify(health_data)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
