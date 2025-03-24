@@ -19,6 +19,21 @@ except Exception as e:
     print(f"Error initializing ViralMusicFinder: {e}")
     music_finder = None
 
+def pretty_print(text: str) -> str:
+    # Replace escaped newlines with actual newlines
+    formatted_text = text.replace("\\n", "\n")
+
+    # Add extra newlines before headers that match the pattern for summaries
+    import re
+    formatted_text = re.sub(r"(=== Summary for.*?)===", r"\n\n\1===", formatted_text)
+
+    # Optional: Add an extra newline after paragraphs for better readability
+    paragraphs = formatted_text.split("\n\n")
+
+    # Reconstruct nicely formatted string
+    result = "\n\n".join(paragraph.strip() for paragraph in paragraphs)
+    return result
+
 def generate_brief(song_data) -> str:
     """Generate a brief for the given song data as a nicely formatted string."""
     try:
@@ -42,6 +57,7 @@ def generate_brief(song_data) -> str:
         # If the summary is a list of strings, join them with newline characters.
         if isinstance(summary, list):
             formatted_summary = "\n".join(summary)
+            formatted_summary = pretty_print(formatted_summary)
         else:
             formatted_summary = summary
         
@@ -52,9 +68,9 @@ def generate_brief(song_data) -> str:
         return f"Error generating brief: {str(e)}"
 
 @app.route('/get-brief', methods=['POST', 'GET'])
-def get_brief():
+def get_brief_endpoint():
     """API endpoint to get a brief for a song.
-    Supports both POST (with JSON body) and GET (with query parameters) methods.
+    Returns a JSON object with a nicely formatted brief string.
     """
     print("Received request")
     try:
@@ -70,11 +86,12 @@ def get_brief():
             data = request.get_json()
             if not data:
                 return jsonify({"error": "No data provided"}), 400
-            
-        # Generate the brief
-        brief = generate_brief(data)
         
-        print(f"Brief generated: {brief}")
+        # Generate the brief as a nicely formatted string
+        brief = generate_brief(data)
+        print(f"Brief generated:\n{brief}")
+        
+        # Return the result in JSON with the nicely formatted string
         return jsonify({"brief": brief})
         
     except Exception as e:
