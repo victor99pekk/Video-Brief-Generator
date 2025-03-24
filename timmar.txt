@@ -1,0 +1,13 @@
+
+Parasition
+
+MARS
+
+11 mars: 3h
+
+12 mars: 2,5h
+
+14 mars: 1.5h
+
+15 mars: 1h
+Kollar alternativ till last fm, tex Spotify api

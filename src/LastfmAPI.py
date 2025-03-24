@@ -63,3 +63,10 @@ class LastfmAPI:
         tags = track.get_top_tags(limit=limit)
         return [tag.item.name for tag in tags]
 
+
+## test the LastfmAPI class and the ability to get similar tracks
+# API_KEY="adf237358ef04d1a07dd2727292dc2f8"
+# API_SECRET="d00bd51f14e57c7f6c4016f40c5981f0"
+# api = LastfmAPI(API_KEY, API_SECRET)
+# similar_tracks = api.get_similar_tracks("sweethearts", "håkan hellström")
+# print(similar_tracks)
