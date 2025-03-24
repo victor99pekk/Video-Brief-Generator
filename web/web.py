@@ -20,9 +20,9 @@ except Exception as e:
     music_finder = None
 
 def generate_brief(song_data) -> str:
-    """Generate a brief for the given song data"""
+    """Generate a brief for the given song data as a nicely formatted string."""
     try:
-        # Extract song and artist from the request
+        # Extract song and artist from the request data
         song = song_data.get("song")
         artist = song_data.get("artist")
         
@@ -30,30 +30,50 @@ def generate_brief(song_data) -> str:
             return "Please provide both song and artist"
         
         # Use your ViralMusicFinder to process the song
-        trends, summary = music_finder.find_tiktoks(song=song, artist=artist)
+        result = music_finder.find_tiktoks(song=song, artist=artist)
         
-        # Return the summary or a default message
-        return summary if summary else "Could not generate a brief for this song"
+        # If the function returns a tuple, assume the second element is the summary.
+        # Otherwise, assume the result is the summary.
+        if isinstance(result, tuple):
+            _, summary = result
+        else:
+            summary = result
+        
+        # If the summary is a list of strings, join them with newline characters.
+        if isinstance(summary, list):
+            formatted_summary = "\n".join(summary)
+        else:
+            formatted_summary = summary
+        
+        return formatted_summary if formatted_summary else "Could not generate a brief for this song"
     
     except Exception as e:
         print(f"Error generating brief: {e}")
         return f"Error generating brief: {str(e)}"
 
-@app.route('/get-brief', methods=['POST'])
+@app.route('/get-brief', methods=['POST', 'GET'])
 def get_brief():
-    """API endpoint to get a brief for a song"""
+    """API endpoint to get a brief for a song.
+    Supports both POST (with JSON body) and GET (with query parameters) methods.
+    """
     print("Received request")
     try:
-        # Get the request data
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        if request.method == 'GET':
+            # Extract parameters from the query string for a GET request
+            song = request.args.get('song')
+            artist = request.args.get('artist')
+            if not song or not artist:
+                return jsonify({"error": "Please provide both song and artist as query parameters"}), 400
+            data = {"song": song, "artist": artist}
+        else:
+            # For POST requests, extract JSON data
+            data = request.get_json()
+            if not data:
+                return jsonify({"error": "No data provided"}), 400
             
         # Generate the brief
         brief = generate_brief(data)
         
-        # Return the result
         print(f"Brief generated: {brief}")
         return jsonify({"brief": brief})
         
@@ -62,7 +82,7 @@ def get_brief():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Simple health check endpoint"""
+    """Simple health check endpoint."""
     print("health")
     return jsonify({"status": "ok"})
 

@@ -25,34 +25,47 @@ class ViralMusicFinder:
         self.Comparator = CompareFeatures(threshold=0.5)
         self.Summarizer = OpenAITrendSummarizer(api_key=LLM_key, model="gpt-3.5-turbo")
 
-    def find_tiktoks(self, song: str = None, artist: str = None) -> None:
+    def find_tiktoks(self, song: str = None, artist: str = None) -> list:
+        # Initialize an empty list to hold each line of the output
+        output_lines = []
+
         # 1. Get similar tracks from Last.fm
         similar_tracks = self.music_api.get_similar_tracks(song=song, artist=artist, limit=3)
         if not similar_tracks:
             print("No similar tracks found...")
-            return "No similar tracks found.", f"no similar tracks found for {song} by {artist}"
+            return [
+                "No similar tracks found.",
+                f"no similar tracks found for {song} by {artist}"
+            ]
+
+        output_lines.append(f"Found {len(similar_tracks)} similar tracks.")
 
         # Process each similar track concurrently
-        print(f"Found {len(similar_tracks)} similar tracks.")
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(similar_tracks)) as executor:
             future_to_track = {
                 executor.submit(self.process_similar_track, track_song, track_artist): (track_song, track_artist)
                 for track_song, track_artist in similar_tracks
             }
-            for future in concurrent.futures.as_completed(future_to_track):
-                track_info = future_to_track[future]
-                try:
-                    result = future.result()
-                    if result:
-                        results.append(result)
-                except Exception as exc:
-                    print(f"Track {track_info} generated an exception: {exc}")
+        for future in concurrent.futures.as_completed(future_to_track):
+            track_info = future_to_track[future]
+            try:
+                result = future.result()
+                if result:
+                    results.append(result)
+            except Exception as exc:
+                error_line = f"Track {track_info} generated an exception: {exc}"
+                print(error_line)
+                output_lines.append(error_line)
 
-        # Print individual track summaries
+        # Append summaries for each track
         for res in results:
-            print(f"\n=== Summary for '{res['song']}' by {res['artist']} ===")
-            print(res['summary'])
+            header = f"=== Summary for '{res['song']}' by {res['artist']} ==="
+            output_lines.append(header)
+            # Assuming res['summary'] is a string that may contain multiple lines,
+            # split them so each line is a separate element.
+            summary_lines = res['summary'].splitlines()
+            output_lines.extend(summary_lines)
 
         # Aggregate trends from all similar tracks
         aggregated_trends = {}
@@ -62,11 +75,15 @@ class ViralMusicFinder:
                 for key, items in trends.items():
                     aggregated_trends.setdefault(key, []).extend(items)
 
+        # Summarize trends if available
         if aggregated_trends:
             overall_summary = self.Summarizer.summarize_trends(aggregated_trends)
-            print(overall_summary)
+            output_lines.append(overall_summary)
         else:
-            print("No trends available")
+            output_lines.append("No trends available")
+
+        return output_lines
+
 
     def process_similar_track(self, song: str, artist: str, video_limit=4):
         """
@@ -275,17 +292,17 @@ def load_config_and_initialize():
     
     return finder
 
-if __name__ == "__main__":
-    try:
-        # Load configuration and initialize the finder
-        music_finder = load_config_and_initialize()
+# if __name__ == "__main__":
+#     try:
+#         # Load configuration and initialize the finder
+#         music_finder = load_config_and_initialize()
         
-        # Get user input for song and artist
-        song = input("Enter a song name: ")
-        artist = input("Enter the artist name: ")
+#         # Get user input for song and artist
+#         song = input("Enter a song name: ")
+#         artist = input("Enter the artist name: ")
         
-        # Find TikToks for the given song
-        music_finder.find_tiktoks(song=song, artist=artist)
+#         # Find TikToks for the given song
+#         music_finder.find_tiktoks(song=song, artist=artist)
         
-    except Exception as e:
-        print(f"Error: {e}")
+#     except Exception as e:
+#         print(f"Error: {e}")
