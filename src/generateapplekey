@@ -1,0 +1,53 @@
+import time
+import jwt  # PyJWT
+import requests
+from dotenv import load_dotenv
+import os
+
+# Replace these with your actual values from your Apple Developer account
+# TEAM_ID = "load from .env"         # Your 10-character Team ID
+# KEY_ID = "load from .env"           # Your 10-character Key ID
+# load_dotenv()
+# PRIVATE_KEY_PATH = os.getenv("APPLE_MUSIC_KEY_PATH")
+
+# # Read your private key from the .p8 file
+# with open(PRIVATE_KEY_PATH, "r") as key_file:
+#     private_key = key_file.read()
+
+# # Define token timing parameters
+# current_time = int(time.time())
+# # Set token expiration time (max 6 months from now, 15777000 seconds)
+# expiration_time = current_time + 15777000
+
+# # Create the JWT header and payload
+# headers = {
+#     "alg": "ES256",
+#     "kid": KEY_ID,
+#     "typ": "JWT"
+# }
+
+# payload = {
+#     "iss": TEAM_ID,        # Issuer: Your Team ID
+#     "iat": current_time,   # Issued At: current time in seconds
+#     "exp": expiration_time # Expiration Time: must be within 6 months of issuance
+# }
+
+# # Generate the JWT (developer token)
+# developer_token = jwt.encode(payload, private_key, algorithm="ES256", headers=headers)
+# print("Your Developer Token:")
+# print(developer_token)
+
+# # (Optional) Use the token in an API request to verify it works.
+# # For example, fetching a specific song from the Apple Music catalog:
+# storefront = "us"
+# url = f"https://api.music.apple.com/v1/catalog/{storefront}/songs/203709340"
+# api_headers = {
+#     "Authorization": f"Bearer {developer_token}"
+# }
+
+# response = requests.get(url, headers=api_headers)
+# print("\nAPI Response Status Code:", response.status_code)
+# try:
+#     print("API Response JSON:", response.json())
+# except Exception as e:
+#     print("Error parsing response:", e)
