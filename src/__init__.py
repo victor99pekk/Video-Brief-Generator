@@ -4,7 +4,7 @@ Parasition Music Analysis Tools - Discover viral music trends and content opport
 
 # Explicitly import each module
 from .ViralMusicFinder import ViralMusicFinder, load_config_and_initialize
-from .LastfmAPI import LastfmAPI
+from .Applemusic import LastfmAPI
 from .TikAPI import TikAPIWrapper
 from .GoogleCloud import GCSVideoUploader
 from .GoogleVideoAnalyzer import GoogleVideoAnalyzer
