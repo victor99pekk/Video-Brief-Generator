@@ -1,5 +1,4 @@
 from openai import OpenAI
-from openai import OpenAI
 
 class OpenAITrendSummarizer:
     """
