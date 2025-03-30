@@ -1,5 +1,5 @@
 from .GoogleVideoAnalyzer import GoogleVideoAnalyzer
-from .Applemusic import LastfmAPI
+from .Applemusic import AppleMusicAPI
 from .TikAPI import TikAPIWrapper
 from .GoogleCloud import GCSVideoUploader
 from .CompareFeatures import CompareFeatures
