@@ -1,7 +1,5 @@
-config/keys/*
-config/GoogleKey.json
+config/*
 src/GoogleKey.json
-config/config.yaml
 
 .env
 __pycache__/*
