@@ -3,33 +3,45 @@ from dotenv import load_dotenv
 import os
 import random
 
+# Import the LLM recommender from your project
+from .LLM_SongRecommender import *
+
 class AppleMusicAPI:
     """
     A wrapper class for the Apple Music API that provides methods to access music data,
     including top charts, album information, and track genres.
-    
-    This class uses a developer token for authentication and targets a specific storefront (default: "us").
-    
+
+    Optionally integrates an LLM-based recommender to provide similar track recommendations.
+    The LLM's influence is determined by its familiarity with the queried song.
+
     Attributes:
         developer_token (str): The Apple Music API developer token for authentication.
         storefront (str): The storefront code (e.g., "us").
     """
     BASE_URL = "https://api.music.apple.com/v1/catalog"
     
-    def __init__(self, developer_token, storefront="us"):
+    def __init__(self, developer_token, storefront="us", llm_api_key=None):
         """
-        Initialize the Apple Music API wrapper with the provided developer token and storefront.
-        
+        Initialize the Apple Music API wrapper with the provided developer token, storefront,
+        and optional LLM API key.
+
         Args:
             developer_token (str): Your Apple Music API developer token.
             storefront (str): The storefront code (default "us").
+            llm_api_key (str, optional): API key for the LLM recommender (e.g. OpenAI API key).
         """
         self.developer_token = developer_token
         self.storefront = storefront
         self.headers = {
             "Authorization": f"Bearer {self.developer_token}"
         }
-    
+        
+        # Initialize LLM recommender if API key is provided
+        if llm_api_key:
+            self.llm_recommender = LLM_SongRecommender({"gpt-3.5-turbo": llm_api_key})
+        else:
+            self.llm_recommender = None
+
     def _request(self, endpoint, params=None):
         """Helper method to make GET requests to the Apple Music API."""
         url = f"{self.BASE_URL}/{self.storefront}/{endpoint}"
@@ -75,7 +87,6 @@ class AppleMusicAPI:
             "limit": limit
         }
         data = self._request(endpoint, params=params)
-        # The response structure is: {"results": {"songs": [ { "data": [ ... ] } ] } }
         songs = []
         charts = data.get("results", {}).get("songs", [])
         for chart in charts:
@@ -98,7 +109,6 @@ class AppleMusicAPI:
             dict: A dictionary with album information (name, artist, release date, genre names, URL),
                   or an empty dictionary if not found.
         """
-        # Combine album and artist in a search term
         term = f"{album} {artist}"
         result = self.search(term, types="albums", limit=1)
         albums = result.get("results", {}).get("albums", {}).get("data", [])
@@ -145,93 +155,91 @@ class AppleMusicAPI:
         """
         return self.get_top_tracks(limit=limit)
     
-
-
     def get_similar_tracks(self, song, artist, limit=5):
         """
-        Finds similar tracks based on shared genres and vibe descriptors while ensuring diversity
-        by excluding tracks from the original artist. This version aggregates candidates across 
-        multiple queries, deduplicates them by artist, and then shuffles the results to avoid any 
-        alphabetical or API-specific ordering.
-        
+        Finds similar tracks by combining recommendations from the Apple Music catalog (using genre and vibe
+        descriptors) and, if available, an LLM-based recommender. If the LLM's familiarity score for the song
+        is above 85, only LLM recommendations are used; otherwise, the final results are a blend of both sources.
+
         Args:
             song (str): The track name.
             artist (str): The artist name.
             limit (int): Maximum number of similar tracks to retrieve.
-            
+
         Returns:
-            list: A list of tuples containing (track name, artist name) that match the desired criteria.
+            list: A list of tuples containing (track name, artist name).
         """
-        # Get genres from the original track.
+        # Get genres for the track
         genres = self.get_track_genres(song, artist)
         if not genres:
-            return []
-        
-        # Collect candidate tracks from multiple queries.
-        candidates = []
-        original_artist = artist.lower()
-        
-        # Define vibe-related keywords to emphasize similar feel and tempo.
-        vibe_keywords = ["chill", "energetic", "upbeat", "smooth"]
-        
-        for genre in genres:
-            # Create queries combining genre with vibe descriptors and also the genre alone.
-            search_queries = [f"{genre} {vk}" for vk in vibe_keywords] + [genre]
+            print("No genres found for the track; cannot fetch similar tracks from Apple Music.")
+            apple_results = []
+        else:
+            # Collect candidate tracks from multiple queries
+            candidates = []
+            original_artist = artist.lower()
+            vibe_keywords = ["chill", "energetic", "upbeat", "smooth"]
+
+            for genre in genres:
+                search_queries = [f"{genre} {vk}" for vk in vibe_keywords] + [genre]
+                for query in search_queries:
+                    result = self.search(query, types="songs", limit=limit * 2)
+                    songs_data = result.get("results", {}).get("songs", {}).get("data", [])
+                    for s in songs_data:
+                        attr = s.get("attributes", {})
+                        track_name = attr.get("name")
+                        artist_name = attr.get("artistName")
+                        if artist_name and artist_name.lower() == original_artist:
+                            continue
+                        track_genres = attr.get("genreNames", [])
+                        if not any(genre.lower() in tg.lower() for tg in track_genres):
+                            continue
+                        candidates.append((track_name, artist_name))
             
-            for query in search_queries:
-                result = self.search(query, types="songs", limit=limit * 2)
-                songs_data = result.get("results", {}).get("songs", {}).get("data", [])
-                
-                for s in songs_data:
-                    attr = s.get("attributes", {})
-                    track_name = attr.get("name")
-                    artist_name = attr.get("artistName")
-                    
-                    # Exclude tracks by the original artist.
-                    if artist_name.lower() == original_artist:
-                        continue
-                    
-                    # Check that the candidate track shares the genre elements.
-                    track_genres = attr.get("genreNames", [])
-                    if not any(genre.lower() in tg.lower() for tg in track_genres):
-                        continue
-                    
-                    candidates.append((track_name, artist_name))
+            # Deduplicate candidates by artist
+            unique_candidates = {}
+            for track_name, artist_name in candidates:
+                if artist_name and artist_name.lower() not in unique_candidates:
+                    unique_candidates[artist_name.lower()] = (track_name, artist_name)
+            apple_results = list(unique_candidates.values())
+            random.shuffle(apple_results)
+            apple_results = apple_results[:limit]
         
-        # Deduplicate candidates by artist to ensure diversity.
-        unique_candidates = {}
-        for track_name, artist_name in candidates:
-            if artist_name.lower() not in unique_candidates:
-                unique_candidates[artist_name.lower()] = (track_name, artist_name)
+        # Initialize LLM recommendations to empty list by default
+        llm_results = []
+        use_llm_only = False
         
-        candidate_list = list(unique_candidates.values())
+        # If the LLM recommender is available, use it to get recommendations
+        if self.llm_recommender:
+            try:
+                # Get a familiarity score for the song from the LLM
+                familiarity_score = self.llm_recommender.familiar_score(song, artist)
+                print(f"Familiarity score for '{song}' by {artist}: {familiarity_score}")
+                # If the score is above 85, use only LLM recommendations.
+                if familiarity_score > 85:
+                    use_llm_only = True
+                    llm_count = limit
+                else:
+                    llm_count = round((familiarity_score / 100) * limit)
+                # Fetch LLM recommendations if needed
+                if llm_count > 0:
+                    llm_results = self.llm_recommender.get_song_recommendations(song, artist, vibe=None, count=llm_count)
+            except Exception as e:
+                print(f"Error using LLM recommender: {e}")
         
-        # Shuffle the combined candidate list to remove any ordering bias.
-        random.shuffle(candidate_list)
+        if use_llm_only:
+            combined = llm_results
+        else:
+            # Determine how many Apple Music recommendations to use if mixing both sources.
+            apple_count = limit - len(llm_results)
+            combined = apple_results[:apple_count] + llm_results
         
-        # Return only up to the requested limit.
-        return candidate_list[:limit]
-
-
-
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Replace 'YOUR_DEVELOPER_TOKEN' with your actual Apple Music developer token.
-    load_dotenv()
-    developer_token = os.getenv("apple_developer_token")
-    
-    am_api = AppleMusicAPI(developer_token)
-
-    # print("Top Trending Tracks:")
-    # print(am_api.get_top_tracks(limit=5))
-
-    # print("\nAlbum Info for 'Divide' by 'Ed Sheeran':")
-    # print(am_api.get_album_info("Ed Sheeran", "Divide"))
-
-    # print("\nTrack Genres for 'Shape of You' by 'Ed Sheeran':")
-    # print(am_api.get_track_genres("Shape of You", "Ed Sheeran"))
-
-    print("\nSimulated Similar Tracks to 'Shape of You' by 'Ed Sheeran':")
-    print(am_api.get_similar_tracks("fucka ur", "de vet du", limit=5))
+        # Deduplicate combined results based on track name and artist
+        unique = {}
+        for track_name, artist_name in combined:
+            key = (track_name.lower(), artist_name.lower())
+            if key not in unique:
+                unique[key] = (track_name, artist_name)
+        final_results = list(unique.values())
+        random.shuffle(final_results)
+        return final_results[:limit]
