@@ -60,7 +60,7 @@ class GoogleVideoAnalyzer:
             google.api_core.exceptions.GoogleAPIError: If the API request fails
             concurrent.futures.TimeoutError: If the analysis times out
         """
-        print(f"Processing video: {uri}")
+        # print(f"Processing video: {uri}")
         request = AnnotateVideoRequest(
             input_uri=uri,
             features=features,
@@ -120,7 +120,7 @@ class GoogleVideoAnalyzer:
                     result = future.result()
                     batch_results.append(result)
                 except Exception as exc:
-                    print(f"Video {uri} generated an exception: {exc}")
+                    print(f"Video {uri} generated an e: {exc}")
 
         return batch_results
 

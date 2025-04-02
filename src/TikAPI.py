@@ -47,7 +47,7 @@ class TikAPIWrapper:
 
                 # 'data' should be a list of search results
                 if not isinstance(data.get("data"), list):
-                    print("No valid data found in search response.")
+                    # print("No valid data found in search response.")
                     break
 
                 for entry in data["data"]:
@@ -67,7 +67,7 @@ class TikAPIWrapper:
                     if early_stop:
                         if self._is_good_enough(user_title, user_artist, found_title, found_author):
                             best_match_id = found_music_id
-                            print(f"[EARLY STOP] Found good enough match: {found_title} by {found_author}")
+                            # print(f"[EARLY STOP] Found good enough match: {found_title} by {found_author}")
                             break  # out of for loop
 
                 if best_match_id or len(music_ids) >= max_results:
@@ -85,7 +85,7 @@ class TikAPIWrapper:
             return list(music_ids)
 
         except (ValidationException, ResponseException) as e:
-            print(f"API Error searching music: {e}")
+            # print(f"API Error searching music: {e}")
             return []
 
     def _is_good_enough(self, user_title, user_artist, found_title, found_author):
@@ -123,10 +123,10 @@ class TikAPIWrapper:
                 # If both the title & author are fairly similar to user inputs
                 if (self._similarity(user_title, title) > similarity_threshold and
                     self._similarity(user_artist, author) > similarity_threshold):
-                    print(f"Match found: {title} by {author}, Music ID: {music_id}")
+                    # print(f"Match found: {title} by {author}, Music ID: {music_id}")
                     return music_id
 
-        print("No exact match found among multiple IDs.")
+        # print("No exact match found among multiple IDs.")
         return None
 
     def fetch_music_videos(self, music_id, limit=10):
@@ -140,7 +140,7 @@ class TikAPIWrapper:
             else:
                 print(f"Music fetch error: HTTP {response.status_code}")
         except (ValidationException, ResponseException) as e:
-            print(f"Error fetching videos for music {music_id}: {e}")
+            print(f"E fetching videos for music {music_id}: {e}")
         return []
 
     def get_video_metadata(self, video_id):
@@ -153,5 +153,5 @@ class TikAPIWrapper:
             print(response.json())
             return response.json()
         except (ValidationException, ResponseException) as e:
-            print(f"Error fetching video {video_id} metadata: {e}")
+            print(f"E fetching video {video_id} metadata: {e}")
         return {}

@@ -37,7 +37,7 @@ class GCSVideoUploader:
     
         self.bucket_name = bucket_name
         self.bucket = self.storage_client.bucket(self.bucket_name)
-        print(f"Successfully connected to bucket: {bucket_name}")
+        # print(f"Successfully connected to bucket: {bucket_name}")
 
     def upload_tiktok_video_direct(self, video_json, blob_name=None):
         """
@@ -70,7 +70,7 @@ class GCSVideoUploader:
                 blob_name = f"tikapi_videos/{video_id}.mp4"
 
             if not video_url:
-                print("No downloadAddr found in video JSON")
+                print("N- downloadAddr found in video JSON")
                 return None
 
             resp = requests.get(video_url, headers=video_headers, stream=True)
@@ -80,7 +80,7 @@ class GCSVideoUploader:
             blob.upload_from_string(resp.content, content_type='video/mp4')
 
             gcs_url = f"gs://{self.bucket.name}/{blob_name}"
-            print(f"Video uploaded to {gcs_url}")
+            # print(f"Video uploaded to {gcs_url}")
             return gcs_url
 
         except requests.exceptions.RequestException as re:

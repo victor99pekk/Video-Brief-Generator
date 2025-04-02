@@ -127,8 +127,12 @@ class LLM_SongRecommender:
             count: The number of recommendations.
         :return: A formatted prompt string.
         """
-        prompt = f"Give me {count} songs similar to '{song}' by '{artist}', based on melody, lyrics, chord progression, beat and rhythm, structure, harmony, and genre/style."
+        prompt = (
+                f"Give me {count} songs similar to '{song}' by '{artist}', "
+                "based on melody, lyrics, chord progression, beat and rhythm, structure, harmony, and genre/style."
+                " Ensure that songs are made by different artists!"
+            )        
         if vibe:
-            prompt += f" The songs should match the vibe: {vibe}. and at most {(count//2)} of your recommendations can be songs by the same artist"
+            prompt += f" The songs should match the vibe: {vibe}. and at most of your recommendations can be songs by the same artist"
         prompt += " Provide only the song names and artists in the format 'Song - Artist', separated by new lines."
         return prompt

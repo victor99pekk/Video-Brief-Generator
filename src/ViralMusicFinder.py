@@ -31,14 +31,14 @@ class ViralMusicFinder:
     def find_tiktoks(self, song: str = None, artist: str = None) -> None:
         # 1. Get similar tracks from Last.fm
         similar_tracks = self.music_api.get_similar_tracks(song=song, artist=artist, limit=3)
-        print(similar_tracks)
-        sys.exit()
+        print("similar tracks: ", similar_tracks)
+        # sys.exit()
         if not similar_tracks:
             print("No similar tracks found...")
             return "No similar tracks found.", f"no similar tracks found for {song} by {artist}"
 
         # Process each similar track concurrently
-        print(f"Found {len(similar_tracks)} similar tracks.")
+        # print(f"Found {len(similar_tracks)} similar tracks.")
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(similar_tracks)) as executor:
             future_to_track = {
@@ -93,13 +93,13 @@ class ViralMusicFinder:
         # 2. Fetch top TikTok videos for this track
         music_videos = self.tiktok_api.fetch_music_videos(matched_song, limit=3)
         if not music_videos:
-            print(f"No videos found for '{song}' by {artist}.")
+            # print(f"No videos found for '{song}' by {artist}.")
             return None
 
         # 3. Analyze and process the videos for this track
         trends, summary = self.analyze_and_process_videos_for_track(music_videos, n=video_limit)
         if not trends:
-            print(f"Could not detect trends for '{song}' by {artist}.")
+            # print(f"Could not detect trends for '{song}' by {artist}.")
             return None
 
         return {
@@ -119,7 +119,7 @@ class ViralMusicFinder:
         Returns tuple (trends, summary).
         """
         if not videos:
-            print("No videos found for analysis.")
+            # print("No videos found for analysis.")
             return None, None
 
         gcs_uris = []
@@ -127,16 +127,16 @@ class ViralMusicFinder:
         def process_video_upload(video):
             video_id = video.get("id")
             if not video_id:
-                print("Video missing ID, skipping.")
+                # print("Video missing ID, skipping.")
                 return None
             print(f"Uploading Video (ID: {video_id})")
             video_json = self.tiktok_api.get_video_metadata(video_id)
             if not video_json:
-                print(f"No metadata found for video {video_id}.")
+                # print(f"No metadata found for video {video_id}.")
                 return None
             gcs_url = self.Uploader.upload_tiktok_video_direct(video_json)
             if not gcs_url:
-                print(f"Unable to upload video {video_id} to GCS.")
+                # print(f"Unable to upload video {video_id} to GCS.")
                 return None
             return gcs_url
 
@@ -150,7 +150,7 @@ class ViralMusicFinder:
                     gcs_uris.append(gcs_url)
 
         if not gcs_uris:
-            print("No GCS URIs to analyze.")
+            # print("No GCS URIs to analyze.")
             return None, None
 
         batch_results = self.Analyzer.analyze_videos_in_batch(video_uris=gcs_uris, timeout=600)
@@ -176,7 +176,7 @@ class ViralMusicFinder:
             summary = self.Summarizer.summarize_trends(trends)
             return trends, summary
         else:
-            print("Only 1 or 0 videos processed; skipping trend comparison.")
+            # print("Only 1 or 0 videos processed; skipping trend comparison.")
             return None, None
 
 def load_config_and_initialize():
@@ -202,7 +202,7 @@ def load_config_and_initialize():
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found at: {config_path}")
     
-    print(f"Loading configuration from: {config_path}")
+    # print(f"Loading configuration from: {config_path}")
     
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
