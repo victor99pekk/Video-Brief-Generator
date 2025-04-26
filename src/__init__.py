@@ -10,6 +10,8 @@ from .GoogleCloud import GCSVideoUploader
 from .GoogleVideoAnalyzer import GoogleVideoAnalyzer
 from .OpenAITrend import OpenAITrendSummarizer
 from .CompareFeatures import CompareFeatures
+from .GoogleVideoAnalyzer2 import GoogleVideoAnalyzer2
+
 
 # Make specific classes and functions available directly
 # from .ViralMusicFinder import ViralMusicFinder, load_config_and_initialize

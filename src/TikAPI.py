@@ -150,7 +150,7 @@ class TikAPIWrapper:
         """
         try:
             response = self.api.public.video(id=video_id)
-            print(response.json())
+            #print(response.json())
             return response.json()
         except (ValidationException, ResponseException) as e:
             print(f"E fetching video {video_id} metadata: {e}")

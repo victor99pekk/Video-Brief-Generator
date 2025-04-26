@@ -2,7 +2,7 @@ import os
 import yaml, sys
 import re
 from dotenv import load_dotenv
-from GoogleVideoAnalyzer import GoogleVideoAnalyzer
+from GoogleVideoAnalyzer2 import GoogleVideoAnalyzer2
 from song_finder.SimilarSongs import SimilarSongs
 from TikAPI import TikAPIWrapper
 from GoogleCloud import GCSVideoUploader
@@ -24,7 +24,7 @@ class ViralMusicFinder:
         self.tiktok_api = TikAPIWrapper(key=self.tiktok_key)
         self.music_api = SimilarSongs(music_token=music_token, LLM_key=LLM_key)
         self.Uploader = GCSVideoUploader(self.google_json, bucket_name=self.bucket_name)
-        self.Analyzer = GoogleVideoAnalyzer()  # multi-threaded analysis
+        self.Analyzer = GoogleVideoAnalyzer2()  # multi-threaded analysis
         self.Comparator = CompareFeatures(threshold=0.5)
         self.Summarizer = OpenAITrendSummarizer(api_key=LLM_key, model="gpt-3.5-turbo")
 

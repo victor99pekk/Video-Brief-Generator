@@ -1,0 +1,15 @@
+Flask==3.1.0
+openai==1.66.3
+protobuf==6.30.0
+pylast==5.5.0
+python-dotenv==1.0.1
+PyYAML==6.0.2
+Requests==2.32.3
+tikapi==3.2.0
+google-cloud-storage>=2.7.0
+google-cloud-videointelligence>=2.11.0
+google-auth>=2.16.0
+
+[dev]
+pytest
+coverage

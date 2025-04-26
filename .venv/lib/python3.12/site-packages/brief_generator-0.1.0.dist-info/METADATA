@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: brief-generator
+Version: 0.1.0
+Summary: A tool for generating briefs for videos to music
+Author: Armon Haghighi
+Author-email: Victor Pekkari <victor.pekkari@gmail.com>
+License: MIT
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: Flask==3.1.0
+Requires-Dist: openai==1.66.3
+Requires-Dist: protobuf==6.30.0
+Requires-Dist: pylast==5.5.0
+Requires-Dist: python-dotenv==1.0.1
+Requires-Dist: PyYAML==6.0.2
+Requires-Dist: Requests==2.32.3
+Requires-Dist: tikapi==3.2.0
+Requires-Dist: google-cloud-storage>=2.7.0
+Requires-Dist: google-cloud-videointelligence>=2.11.0
+Requires-Dist: google-auth>=2.16.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: coverage; extra == "dev"
+
+# AI-Powered Trend Prediction for Content Creators
+
+**ViralMusicExplorer** is an innovative tool that helps users discover similar songs based on their preferences developed for the company parasition. By simply inputting a song title, the program not only suggests similar tracks but also analyzes their potential virality on a social media platform of choice, and outputs a brief of video idea for the inputted song in text form.
+
+<br>
+## How It Works
+
+1. **Input a Song**: The user enters a song they enjoy or want to explore further.
+2. **Find Similar Tracks**: The program identifies songs with similar characteristics.
+3. **Social Media Virality**: The tool checks which of these similar tracks are gaining traction on the selected social media platform, providing insights into trending songs.
+4. **Output** is videos that have gone viral to similar songs, and video ideas (in text-form) for the input song.
+
