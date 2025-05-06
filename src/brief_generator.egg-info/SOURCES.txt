@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/brief_generator.egg-info/PKG-INFO
+src/brief_generator.egg-info/SOURCES.txt
+src/brief_generator.egg-info/dependency_links.txt
+src/brief_generator.egg-info/requires.txt
+src/brief_generator.egg-info/top_level.txt
+src/song_finder/Applemusic.py
+src/song_finder/LLM_SongRecommender.py
+src/song_finder/SimilarSongs.py
+src/vmf/__init__.py
+src/vmf/core.py
+src/vmf/models.py
+tests/test_LLM_songRecommend.py

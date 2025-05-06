@@ -34,5 +34,5 @@ dev = [
     "coverage"
 ]
 
-[tool.setuptools]
-packages = ["src"]
+[tool.setuptools.packages.find]
+where = ["src"]

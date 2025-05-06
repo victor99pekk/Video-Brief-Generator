@@ -1,4 +1,4 @@
-#!/Users/armon/Documents/GitHub/p/Video-Brief-Generator/.venv/bin/python
+#!/Users/armon/Documents/GitHub/Video-Brief-Generator/.venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
